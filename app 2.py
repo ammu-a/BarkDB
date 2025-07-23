@@ -5,6 +5,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
+
 def connect_db():
     return mysql.connector.connect(
         host="localhost",
@@ -336,14 +337,7 @@ def experience_rank():
             DENSE_RANK() OVER (ORDER BY YearsExperience DESC) AS dense_ranked
         FROM ServiceProvider;
      """
-    conn = connect_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute(query)
-    data = cur.fetchall()
-    cols = cur.column_names
-    cur.close()
-    conn.close()
-    return render_template("view_results.html", query=query, data=data, cols=cols)
+    return do_analytical_queries(query)
 
 
 @app.route("/analytics/rate_rank")
@@ -355,14 +349,7 @@ def rate_rank():
                     DENSE_RANK() OVER (ORDER BY YearsExperience DESC) AS dense_ranked
         FROM ServiceProvider;
     """
-    conn = connect_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute(query)
-    data = cur.fetchall()
-    cols = cur.column_names
-    cur.close()
-    conn.close()
-    return render_template("view_results.html", query=query, data=data, cols=cols)
+    return do_analytical_queries(query)
 
 @app.route("/analytics/rolling_bookings")
 def rolling_bookings():
@@ -379,14 +366,7 @@ def rolling_bookings():
         ) AS bookings_by_day
         GROUP BY ServiceID, BookingDate
     """
-    conn = connect_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute(query)
-    data = cur.fetchall()
-    cols = cur.column_names
-    cur.close()
-    conn.close()
-    return render_template("view_results.html", query=query, data=data, cols=cols)
+    return do_analytical_queries(query)
 
 @app.route("/analytics/vancouver_totals")
 def vancouver_totals():
@@ -397,14 +377,7 @@ def vancouver_totals():
         JOIN Location l ON sp.LocationID = l.LocationID
         WHERE l.City = 'Vancouver'
     """
-    conn = connect_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute(query)
-    data = cur.fetchall()
-    cols = cur.column_names
-    cur.close()
-    conn.close()
-    return render_template("view_results.html", query=query, data=data, cols=cols)
+    return do_analytical_queries(query)
 
 @app.route("/analytics/provider_totals")
 def provider_totals():
@@ -414,14 +387,7 @@ def provider_totals():
         FROM Booking b
         JOIN ServiceProvider sp ON b.ProviderID = sp.ProviderID
     """
-    conn = connect_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute(query)
-    data = cur.fetchall()
-    cols = cur.column_names
-    cur.close()
-    conn.close()
-    return render_template("view_results.html", query=query, data=data, cols=cols)
+    return do_analytical_queries(query)
 
 @app.route("/analytics/revenue_rollup")
 def revenue_rollup():
@@ -437,14 +403,7 @@ JOIN Location l ON sp.LocationID = l.LocationID
 JOIN PetOwner po ON b.PetOwnerID = po.PetOwnerID
 GROUP BY s.ServiceName, po.PetType, l.City WITH ROLLUP;
     """
-    conn = connect_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute(query)
-    data = cur.fetchall()
-    cols = cur.column_names
-    cur.close()
-    conn.close()
-    return render_template("view_results.html", query=query, data=data, cols=cols)
+    return do_analytical_queries(query)
 
 @app.route("/analytics/revenue_moving_avg")
 def revenue_moving_avg():
@@ -459,6 +418,9 @@ def revenue_moving_avg():
         JOIN ServiceProvider sp ON b.ProviderID = sp.ProviderID
         JOIN Location l ON sp.LocationID = l.LocationID
     """
+    return do_analytical_queries(query)
+
+def do_analytical_queries(query):
     conn = connect_db()
     cur = conn.cursor(dictionary=True)
     cur.execute(query)
