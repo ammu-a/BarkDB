@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Search for Sitter</title></head>
+<body>
+    <h2>Search for Available Sitters</h2>
+    <form action="/search" method="POST">
+        Zipcode:
+        <select name="zipcode">
+            <option value="ALL">Any Location</option>
+            {% for z in zipcodes %}
+                <option value="{{ z.Zipcode }}">{{ z.Zipcode }}</option>
+            {% endfor %}
+        </select><br><br>
+        Service:
+        <select name="service_id">
+            {% for s in services %}
+                <option value="{{ s.ServiceID }}">{{ s.ServiceName }}</option>
+            {% endfor %}
+        </select><br><br>
+        Start Date: <input type="date" name="start_date" required><br><br>
+        End Date: <input type="date" name="end_date" required><br><br>
+        <button type="submit">Search</button>
+    </form>
+</body>
+</html>

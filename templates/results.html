@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Results</title></head>
+<body>
+    <h2>Available Sitters</h2>
+    <table border="1">
+        <tr>
+            <th>Name</th><th>Email</th><th>Home Type</th>
+            <th>Experience</th><th>Children At Home</th>
+            <th>Total Reviews</th><th>Avg Rating</th><th>Action</th>
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td>{{ row.ProviderName }}</td>
+            <td>{{ row.Email }}</td>
+            <td>{{ row.HomeType }}</td>
+            <td>{{ row.YearsExperience }}</td>
+            <td>{{ row.ChildrenAtHome }}</td>
+            <td>{{ row.total_reviews }}</td>
+            <td>{{ row.avg_rating }}</td>
+            <td>
+                <form action="/book" method="post">
+                    <input type="hidden" name="provider_id" value="{{ row.ProviderID }}">
+                    <input type="hidden" name="start_date" value="{{ start_date }}">
+                    <input type="hidden" name="end_date" value="{{ end_date }}">
+                    <input type="hidden" name="service_id" value="{{ service_id }}">
+                    Owner ID: <input type="text" name="owner_id" required>
+                    <button type="submit">Book This Sitter</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br><a href="/">Back to Search</a> | <a href="/show_query">Show SQL Query</a>
+</body>
+</html>
