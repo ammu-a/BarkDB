@@ -13,7 +13,7 @@
         {% endfor %}
     {% endwith %}
     <form action="/delete_booking" method="POST">
-        <input type="text" name="bookingid" required>
+        <input type="text" name="bookingid" placeholder="Booking ID"required>
         <button type="submit">Delete Booking</button>
     </form>
     <a href="/" class="btn btn-secondary mt-3">Back</a>

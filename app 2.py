@@ -277,6 +277,7 @@ def search_form():
         return render_template("search_form.html", services=services, zipcodes=zipcodes)
     except Exception as e:
         return f"<h3>Error: {e}</h3>"
+
 @app.route('/show_query')
 def show_query():
     q = """ 
@@ -337,8 +338,7 @@ def experience_rank():
             DENSE_RANK() OVER (ORDER BY YearsExperience DESC) AS dense_ranked
         FROM ServiceProvider;
      """
-    return do_analytical_queries(query)
-
+    return do_analytical_queries(query, query_name="experience_rank")
 
 @app.route("/analytics/rate_rank")
 def rate_rank():
@@ -349,7 +349,7 @@ def rate_rank():
                     DENSE_RANK() OVER (ORDER BY YearsExperience DESC) AS dense_ranked
         FROM ServiceProvider;
     """
-    return do_analytical_queries(query)
+    return do_analytical_queries(query, query_name="rate_rank")
 
 @app.route("/analytics/rolling_bookings")
 def rolling_bookings():
@@ -366,7 +366,7 @@ def rolling_bookings():
         ) AS bookings_by_day
         GROUP BY ServiceID, BookingDate
     """
-    return do_analytical_queries(query)
+    return do_analytical_queries(query, query_name="rolling_bookings")
 
 @app.route("/analytics/vancouver_totals")
 def vancouver_totals():
@@ -377,7 +377,7 @@ def vancouver_totals():
         JOIN Location l ON sp.LocationID = l.LocationID
         WHERE l.City = 'Vancouver'
     """
-    return do_analytical_queries(query)
+    return do_analytical_queries(query, query_name="vancouver_totals")
 
 @app.route("/analytics/provider_totals")
 def provider_totals():
@@ -387,7 +387,7 @@ def provider_totals():
         FROM Booking b
         JOIN ServiceProvider sp ON b.ProviderID = sp.ProviderID
     """
-    return do_analytical_queries(query)
+    return do_analytical_queries(query, query_name="provider_totals")
 
 @app.route("/analytics/revenue_rollup")
 def revenue_rollup():
@@ -403,7 +403,7 @@ JOIN Location l ON sp.LocationID = l.LocationID
 JOIN PetOwner po ON b.PetOwnerID = po.PetOwnerID
 GROUP BY s.ServiceName, po.PetType, l.City WITH ROLLUP;
     """
-    return do_analytical_queries(query)
+    return do_analytical_queries(query, query_name="revenue_rollup")
 
 @app.route("/analytics/revenue_moving_avg")
 def revenue_moving_avg():
@@ -418,9 +418,9 @@ def revenue_moving_avg():
         JOIN ServiceProvider sp ON b.ProviderID = sp.ProviderID
         JOIN Location l ON sp.LocationID = l.LocationID
     """
-    return do_analytical_queries(query)
+    return do_analytical_queries(query, query_name="revenue_moving_avg")
 
-def do_analytical_queries(query):
+def do_analytical_queries(query, query_name=None):
     conn = connect_db()
     cur = conn.cursor(dictionary=True)
     cur.execute(query)
@@ -428,8 +428,15 @@ def do_analytical_queries(query):
     cols = cur.column_names
     cur.close()
     conn.close()
-    return render_template("view_results.html", query=query, data=data, cols=cols)
-     
+    return render_template("view_results.html", query=query, data=data, cols=cols, query_name=query_name)
+
+#@app.route('/show_analytics_query/<query_name>')
+#def show_analytics_query(query_name):
+    #if query_name in queries:
+        #return f"<pre>{queries[query_name]}</pre><br><a href='/analytics'>Back to Analytics</a>"
+    #else:
+        #return "<h3>Query not found</h3>"
+
 if __name__ == '__main__':
     app.run(debug=True)
 
