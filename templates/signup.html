@@ -15,7 +15,7 @@
 <body class="bg-light">
     <div class="container mt-5">
         <div class="card shadow p-4">
-            <h2 class="mb-4 text-center">🐶 Join the BarkDB Pack!</h2>
+            <h2 class="mb-4 text-center">Join the BarkDB Pack!</h2>
             {% with messages = get_flashed_messages() %}
               {% if messages %}
                 <div class="alert alert-info">{{ messages[0] }}</div>
@@ -59,12 +59,18 @@
                 </div>
 
                 <div id="provider-fields" style="display:none;">
-                    <div class="mb-3"><label class="form-label">Zipcode:</label>
-                        <input type="text" name="zipcode" class="form-control"></div>
-                    <div class="mb-3"><label class="form-label">City:</label>
-                        <input type="text" name="city" class="form-control"></div>
-                    <div class="mb-3"><label class="form-label">Province:</label>
-                        <input type="text" name="province" class="form-control"></div>
+                    <div class="mb-3">
+                        <label class="form-label">Select Location:</label>
+                        <select name="location_id" class="form-select">
+                            {% for loc in locations %}
+                                <option value="{{ loc.LocationID }}">
+                                    {{ loc.Zipcode }}, {{ loc.City }}, {{ loc.Province }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Provider Name:</label>
+                            <input type="text" name="provider_name" class="form-control"></div>
                     <div class="mb-3"><label class="form-label">Home Type:</label>
                         <input type="text" name="home_type" class="form-control"></div>
                     <div class="mb-3"><label class="form-label">Years of Experience:</label>

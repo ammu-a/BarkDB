@@ -8,7 +8,7 @@
         <tr>
             <th>Name</th><th>Email</th><th>Home Type</th>
             <th>Experience</th><th>Children At Home</th>
-            <th>Total Reviews</th><th>Avg Rating</th><th>Action</th>
+            <th>Total Reviews</th><th>Avg Rating</th><th>Rate</th><th>Action</th>
         </tr>
         {% for row in data %}
         <tr>
@@ -19,6 +19,7 @@
             <td>{{ row.ChildrenAtHome }}</td>
             <td>{{ row.total_reviews }}</td>
             <td>{{ row.avg_rating }}</td>
+            <td>{{ row.ServiceRate }}</td>
             <td>
                 <form action="/book" method="post">
                     <input type="hidden" name="provider_id" value="{{ row.ProviderID }}">

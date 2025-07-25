@@ -1,0 +1,12 @@
+<h2>Booking Confirmed!</h2>
+<ul class="list-group">
+    <li class="list-group-item"><strong>Booking ID:</strong> {{ info.booking_id }}</li>
+    <li class="list-group-item"><strong>Provider ID:</strong> {{ info.provider_id }}</li>
+    <li class="list-group-item"><strong>Owner ID:</strong> {{ info.owner_id }}</li>
+    <li class="list-group-item"><strong>Service ID:</strong> {{ info.service_id }}</li>
+    <li class="list-group-item"><strong>Start Date:</strong> {{ info.start_date }}</li>
+    <li class="list-group-item"><strong>End Date:</strong> {{ info.end_date }}</li>
+    <li class="list-group-item"><strong>Total Price (from stored proc):</strong> <strong>${{ info.total_price }}</strong></li>
+    <li class="list-group-item"><strong>Status:</strong> {{ info.status }}</li>
+</ul>
+<a href="/" class="btn btn-primary mt-3">Back to Home</a>

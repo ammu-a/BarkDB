@@ -1,0 +1,16 @@
+"ServiceID";"ServiceName";"ServiceDescription";"Active"
+1;"Dog Boarding";"Overnight stay for dogs in sitter's home";1
+2;"Cat Boarding";"Overnight stay for cats in sitter's home";1
+3;"House Sitting for Dogs";"Sitter stays overnight at your home with your dog";1
+4;"House Sitting for Cats";"Sitter stays overnight at your home with your cat";1
+5;"Dog Day Care";"Drop off your dog during the day for play and care";1
+6;"Puppy Day Care";"Special day care service for young puppies";1
+7;"Dog Walking (30 min)";"30-minute walk around your neighborhood";1
+8;"Dog Walking (60 min)";"1-hour walk for dogs needing more exercise";1
+9;"Drop-in Visit for Dogs (15 min)";"Quick 15-minute visit to check in on your dog";1
+10;"Drop-in Visit for Dogs (30 min)";"Extended 30-minute visit for feeding and play";1
+11;"Drop-in Visit for Cats (15 min)";"Brief check-in for feeding and litter cleaning";1
+12;"Drop-in Visit for Cats (30 min)";"Full 30-minute visit for play and care";1
+13;"Virtual Dog Training (Beginner)";"Online training for new dogs or puppies";1
+14;"Senior Dog Care";"Support for older dogs and special needs.";1
+15;"Overnight Boarding with Medication Admin";"Boarding service with support for pets needing medication";1

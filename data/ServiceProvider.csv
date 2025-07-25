@@ -1,0 +1,36 @@
+ProviderID,UserID,ProviderName,LocationID,HomeType,TotalReviews,YearsExperience,RepeatClients,PetsAtHome,ChildrenAtHome,AboutMe
+1,6,Sophie D,1,Apartment,120,4,30,True,False,"Lifelong dog lover, experienced in rescue care."
+2,7,Jason R,2,House with yard,85,5,20,True,True,Love walking dogs and caring for pets of all kinds.
+3,8,Leo M,3,Townhouse,60,3,12,False,False,Quiet home with a calm environment for cats and dogs.
+4,9,Anna B,4,Apartment,102,6,25,True,False,"Vet tech student, experienced in senior pet care."
+5,10,Carlos S,5,Detached House,95,7,28,False,True,"Dog trainer offering fun, structured care."
+6,12,Emily T,6,Basement Suite,45,2,10,False,False,Love spending time with pets of all ages.
+7,14,Ben Y,7,Condo,78,4,16,True,False,Pet-friendly condo with access to trails.
+8,23,Tina L,8,House with large yard,64,3,14,True,True,We’re a pet-loving family with fenced backyard.
+9,24,George P,9,Apartment,38,2,5,False,False,Great with shy pets and cats.
+10,25,Sara P,10,Cottage,83,5,19,True,True,Peaceful retreat space for animals.
+11,26,Nina F,11,House,54,3,10,True,False,Working from home — your pets get full attention.
+12,27,Rick West,12,Farmhouse,40,6,13,True,True,Large open spaces and animal-friendly farm.
+13,28,Amanda C,13,Apartment,66,2,8,False,False,Friendly sitter specializing in cats.
+14,29,Zane H,14,Townhouse,73,4,15,False,True,Kids and I love animals and walks.
+15,30,Priya M,15,House with fenced yard,90,5,22,True,True,Grew up with pets — lots of love to share.
+16,31,Olivia W,16,Apartment,51,3,12,True,False,Pet sitter with cozy apartment near Stanley Park.
+17,32,Harry T,17,House with yard,60,4,15,True,True,Family home with playful pups and fenced yard.
+18,33,Megan L,18,Townhouse,45,2,9,False,False,Reliable sitter with flexible schedule.
+19,34,Lucas M,19,Basement Suite,39,2,7,True,False,Dog dad with a secure space for small breeds.
+20,35,Ella K,20,Detached House,77,5,18,False,True,"Quiet, loving home perfect for senior pets."
+21,36,Ethan G,21,Condo,64,3,14,True,False,Animal science grad with passion for dogs.
+22,37,Mia R,22,Apartment,33,1,5,False,False,"New to pet sitting, but full of care!"
+23,38,Jack H,23,Townhouse,42,2,10,True,True,Pet-sitter with kids and loving home.
+24,39,Ava L,24,House with yard,88,6,20,True,False,"Backyard, toys, and happy pets always!"
+25,40,Noah G,25,Apartment,54,3,13,False,False,Great with anxious and senior pets.
+26,41,Chloe D,26,Cottage,35,2,6,True,True,Cozy cottage surrounded by trails.
+27,42,Liam W,27,House,79,5,17,True,False,Safe home and 24/7 supervision.
+28,43,Grace B,28,Apartment,67,3,15,False,False,Pet cuddles and daily photos guaranteed.
+29,44,Logan B,29,Townhouse,53,4,10,True,True,Enthusiastic sitter who loves long walks.
+30,45,Ruby J,30,House with large yard,62,4,13,True,False,Fenced yard and frequent playtime.
+31,46,Jayden C,31,Basement Suite,40,2,8,False,False,Attentive to details and routines.
+32,47,Sienna M,32,Apartment,36,3,7,False,False,Patient sitter great with shy pets.
+33,48,Owen H,33,Townhouse,71,4,16,True,True,Experienced with rescue pets.
+34,49,Lily B,34,Condo,55,2,11,False,False,Clean home and gentle handling.
+35,50,Mason R,35,Detached House,63,3,14,True,True,Big yard and experience with all breeds.
