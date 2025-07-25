@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, flash
 import mysql.connector
 from datetime import datetime
-
+from decimal import Decimal, ROUND_HALF_UP
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
@@ -21,28 +21,60 @@ def main_menu():
 @app.route('/view')
 def view_menu():
     return render_template('view_menu.html')
-
+#fixing the location dropdown
 @app.route('/signup')
 def signup_form():
-    return render_template('signup.html')
+    conn = connect_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT LocationID, Zipcode, City, Province FROM Location")
+    locations = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('signup.html', locations=locations)
 
 @app.route('/signup', methods=['POST'])
 def signup():
-    email = request.form['email']
-    username = request.form['username']
-    password = request.form['password']
-    user_type = request.form['user_type']
-
+    data = request.form
+    data.get('owner_name')  
+    print (f"Signup form data: {request.form}")
     conn = connect_db()
     cur = conn.cursor()
+    # todo db transaction
     cur.execute("INSERT INTO UserSignup (Email, Username, Password, UserType) VALUES (%s, %s, %s, %s)",
-                (email, username, password, user_type))
+                (data["email"], data["username"], data["password"], data["user_type"]))
+    db_user_id = cur.lastrowid
+    user_info = {
+            "user_id": db_user_id,
+            "user_type": data["user_type"],
+            "provider_id": None,
+            "owner_id": None
+      }
+  
+    if data["user_type"] == "owner":
+        cur.execute("INSERT INTO PetOwner (UserID, OwnerName, PetType, Breed, PetName) VALUES (%s, %s, %s, %s, %s)",
+                    (db_user_id, data["owner_name"], data["pet_type"], data["breed"], data["pet_name"]))
+        owner_id = cur.lastrowid
+        user_info["owner_id"] = owner_id
+    elif data["user_type"] == "provider": 
+        pets_at_home = data.get("pets_at_home", 0)
+        children_at_home = data.get("children_at_home", 0)
+        repeat_clients = data.get("repeat_clients", 0)
+        location_id = int(data.get("location_id"))
+        cur.execute("INSERT INTO ServiceProvider (UserID, ProviderName, LocationID, HomeType, YearsExperience, RepeatClients, PetsAtHome, ChildrenAtHome, AboutMe) VALUES  (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (db_user_id, data["provider_name"], data["location_id"], data["home_type"], data["experience"], repeat_clients, pets_at_home, children_at_home, data["about_me"]))
+        provider_id = cur.lastrowid
+        user_info["provider_id"] = provider_id
     conn.commit()
+    return render_template("signup_success.html", info=user_info)
+#commenting out because of syntax error
+    #except Exception as e:
+        #conn.rollback()
+        #return f"<h3>Signup failed: {e}</h3><a href='/signup'>Try Again</a>"
+
+
     cur.close()
     conn.close()
-
-    flash("Signup successful!")
-    return redirect('/')
+ 
 
 @app.route('/view/<item>')
 def view_item(item):
@@ -83,7 +115,7 @@ def update_provider():
             'HomeType': request.form.get('home_type'),
             'ChildrenAtHome': request.form.get('children_at_home'),
             'YearsExperience': request.form.get('years_experience'),
-            'PetAtHome': request.form.get('pet_at_home'),
+            'PetsAtHome': request.form.get('pet_at_home'),
             'AboutMe': request.form.get('about_me')
         }
         conn = connect_db()
@@ -222,16 +254,22 @@ def search():
             values = [zipcode, service_id, start_date, end_date, start_date, end_date]
 
         query = f""" 
-            SELECT sp.ProviderID, sp.ProviderName, us.Email, sp.HomeType,
-                   sp.YearsExperience, sp.ChildrenAtHome, 
-                   COUNT(r.ReviewID) AS total_reviews,
-                   ROUND(AVG(r.Rating), 2) AS avg_rating
+            SELECT 
+                sp.ProviderID,
+                sp.ProviderName,
+                us.Email,
+                sp.HomeType,
+                sp.YearsExperience,
+                sp.ChildrenAtHome,
+                rt.Rate AS ServiceRate,
+                COUNT(r.ReviewID) AS total_reviews,
+                ROUND(AVG(r.Rating), 2) AS avg_rating
             FROM ServiceProvider sp
             JOIN Location l ON sp.LocationID = l.LocationID
             JOIN UserSignup us ON sp.UserID = us.UserID
             JOIN Rate rt ON sp.ProviderID = rt.ProviderID
             LEFT JOIN Booking b ON sp.ProviderID = b.ProviderID
-            LEFT JOIN Reviews r ON b.BookingID = r.BookingID
+            LEFT JOIN Reviews r ON r.BookingID = b.BookingID
             WHERE {zip_condition} rt.ServiceID = %s
               AND sp.ProviderID NOT IN (
                   SELECT ProviderID FROM Booking
@@ -239,7 +277,9 @@ def search():
                      OR (%s BETWEEN StartDate AND EndDate)
                      OR (StartDate BETWEEN %s AND %s)
               )
-            GROUP BY sp.ProviderID 
+            GROUP BY 
+                sp.ProviderID, sp.ProviderName, us.Email, 
+                sp.HomeType, sp.YearsExperience, sp.ChildrenAtHome, rt.Rate
         """
 
         cur.execute(query, values)
@@ -312,18 +352,84 @@ def book_sitter():
 
     try:
         conn = connect_db()
-        cur = conn.cursor()
+        cur = conn.cursor(dictionary=True)
+           # Step 1: Get RateID and Rate
+        cur.execute("""
+            SELECT RateID, Rate FROM Rate
+            WHERE ProviderID = %s AND ServiceID = %s
+        """, (provider_id, service_id))
+        rate_info = cur.fetchone()
+
+        if not rate_info:
+            return "<h3>Error: Rate not found for this provider and service combination.</h3>"
+
+        rate_id = rate_info["RateID"]
+        discount_rate = 0.00  # Default (can change later)
+        booking_status = "Confirmed"
+
         query = """
-        INSERT INTO Booking (PetOwnerID, ProviderID, ServiceID, StartDate, EndDate)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO Booking (PetOwnerID, ProviderID, ServiceID, StartDate, EndDate, RateID, DiscountRate, BookingDate, BookingStatus)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, CURDATE(), %s)
         """
-        cur.execute(query, (owner_id, provider_id, service_id, start_date, end_date))
+        cur.execute(query,  (owner_id, provider_id, service_id, start_date, end_date,rate_id, discount_rate, booking_status))
+        booking_id = cur.lastrowid
         conn.commit()
+        # call the function to calculate total price
+        cur.execute("SELECT GetTotalBookingPrice(%s) AS TotalPrice", (booking_id,))
+        total_price_row = cur.fetchone()
+        total_price = total_price_row['TotalPrice'] if total_price_row else "N/A"
+         #return confirmation page
+        return render_template('booking_success.html',  info={
+            "booking_id": booking_id,
+            "provider_id": provider_id,
+            "owner_id": owner_id,
+            "start_date": start_date,
+            "end_date": end_date,
+            "service_id": service_id,
+            "rate_info": rate_info,
+            "total_price": total_price
+        })
+    except Exception as e:
+        return f"<h3>Booking Error: {e}</h3>"
         cur.close()
         conn.close()
-        return "<h3>Booking successful!</h3><br><a href='/'>Back to Home</a>"
-    except Exception as e:
-        return f"<h3>Booking error: {e}</h3>"
+      
+
+@app.route('/add_rate', methods=['GET', 'POST'])
+def add_rate():
+    conn = connect_db()
+    cur = conn.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        try:
+            provider_id = request.form['provider_id']
+            service_id = request.form['service_id']
+            rate = request.form['rate']
+            rate_type = request.form['rate_type']
+            effective_date = request.form['effective_date']
+
+            cur.execute("""
+                INSERT INTO Rate (ProviderID, ServiceID, Rate, RateType, EffectiveDate)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (provider_id, service_id, rate, rate_type, effective_date))
+            conn.commit()
+            flash("Rate added successfully!", "success")
+            return redirect('/')
+        except Exception as e:
+            flash(f"Error: {e}", "danger")
+            return redirect('/add_rate')
+
+    # For GET: fetch all services
+    cur.execute("SELECT DISTINCT s.ServiceID, s.ServiceName FROM Rate r JOIN Services s ON r.ServiceID = s.ServiceID")
+    services = cur.fetchall()
+
+    # Fetch distinct rate types from Rate table
+    cur.execute("SELECT DISTINCT RateType FROM Rate")
+    rate_types = [row["RateType"] for row in cur.fetchall()]
+
+    cur.close()
+    conn.close()
+    return render_template('add_rate.html', services=services, rate_types=rate_types)
         
 @app.route("/analytics")
 def analytics():
@@ -354,24 +460,33 @@ def rate_rank():
 @app.route("/analytics/rolling_bookings")
 def rolling_bookings():
     query = """
-        SELECT ServiceID, BookingDate, COUNT(*) AS bookings,
-            SUM(COUNT(*)) OVER (
-                PARTITION BY ServiceID
-                ORDER BY BookingDate
-                ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
-            ) AS rolling_3_day_count
-        FROM (
-            SELECT ServiceID, DATE(StartDate) AS BookingDate
-            FROM Booking
-        ) AS bookings_by_day
-        GROUP BY ServiceID, BookingDate
+        SELECT 
+    ServiceID,
+    ServiceName,
+    BookingDate,
+    COUNT(*) AS bookings,
+    SUM(COUNT(*)) OVER (
+        PARTITION BY ServiceID
+        ORDER BY BookingDate
+        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+    ) AS rolling_3_day_count
+FROM (
+    SELECT 
+        b.ServiceID,
+        s.ServiceName,
+        DATE(b.StartDate) AS BookingDate
+    FROM Booking b
+    JOIN Services s ON b.ServiceID = s.ServiceID
+) AS bookings_by_day
+GROUP BY ServiceID, ServiceName, BookingDate
+ORDER BY ServiceID, BookingDate;
     """
     return do_analytical_queries(query, query_name="rolling_bookings")
 
 @app.route("/analytics/vancouver_totals")
 def vancouver_totals():
     query = """
-        SELECT b.BookingID, l.City, b.StartDate, COUNT(*) OVER (PARTITION BY l.City ORDER BY b.StartDate) AS running_total
+        SELECT l.City, b.StartDate, COUNT(*) OVER (PARTITION BY l.City ORDER BY b.StartDate) AS running_total
         FROM Booking b
         JOIN ServiceProvider sp ON b.ProviderID = sp.ProviderID
         JOIN Location l ON sp.LocationID = l.LocationID
@@ -393,7 +508,6 @@ def provider_totals():
 def revenue_rollup():
     query = """
        SELECT s.ServiceName,
-    CASE WHEN GROUPING(po.PetType) = 1 THEN 'All Pet Types' ELSE po.PetType END AS PetType,
     CASE WHEN GROUPING(l.City) = 1 THEN 'All Cities' ELSE l.City END AS City,
     SUM(GetTotalBookingPrice(b.BookingID)) AS Revenue
 FROM Booking b
@@ -401,22 +515,24 @@ JOIN Services s ON b.ServiceID = s.ServiceID
 JOIN ServiceProvider sp ON b.ProviderID = sp.ProviderID
 JOIN Location l ON sp.LocationID = l.LocationID
 JOIN PetOwner po ON b.PetOwnerID = po.PetOwnerID
-GROUP BY s.ServiceName, po.PetType, l.City WITH ROLLUP;
+GROUP BY s.ServiceName, l.City WITH ROLLUP;
     """
     return do_analytical_queries(query, query_name="revenue_rollup")
 
 @app.route("/analytics/revenue_moving_avg")
 def revenue_moving_avg():
     query = """
-        SELECT l.City, b.StartDate,
-            AVG(GetTotalBookingPrice(b.BookingID)) OVER (
-                PARTITION BY l.City
-                ORDER BY b.StartDate
-                ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
-            ) AS moving_avg
-        FROM Booking b
-        JOIN ServiceProvider sp ON b.ProviderID = sp.ProviderID
-        JOIN Location l ON sp.LocationID = l.LocationID
+        SELECT 
+    l.City, 
+    b.StartDate,
+    ROUND(AVG(GetTotalBookingPrice(b.BookingID)) OVER (
+        PARTITION BY l.City
+        ORDER BY b.StartDate
+        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+    ), 2) AS moving_avg
+FROM Booking b
+JOIN ServiceProvider sp ON b.ProviderID = sp.ProviderID
+JOIN Location l ON sp.LocationID = l.LocationID;
     """
     return do_analytical_queries(query, query_name="revenue_moving_avg")
 
@@ -429,13 +545,6 @@ def do_analytical_queries(query, query_name=None):
     cur.close()
     conn.close()
     return render_template("view_results.html", query=query, data=data, cols=cols, query_name=query_name)
-
-#@app.route('/show_analytics_query/<query_name>')
-#def show_analytics_query(query_name):
-    #if query_name in queries:
-        #return f"<pre>{queries[query_name]}</pre><br><a href='/analytics'>Back to Analytics</a>"
-    #else:
-        #return "<h3>Query not found</h3>"
 
 if __name__ == '__main__':
     app.run(debug=True)
