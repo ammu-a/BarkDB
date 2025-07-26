@@ -6,9 +6,10 @@ The platform includes analytics and tools for managing bookings, updating users 
 ---
 ## Tech Stack
 
- **Backend**: Python, Flask
- **Database**: MySQL
- **Frontend**: HTML, Bootstrap
+ - Backend: Python, Flask
+ - Database: MySQL
+ - Frontend: HTML, Bootstrap
+
 ---
 
 ## Installation
@@ -17,49 +18,54 @@ The platform includes analytics and tools for managing bookings, updating users 
 ```bash
 git clone https://github.com/ammu-a/BarkDB.git
 cd BarkDB
-npm install
 ```
-### 2. Set up Python Environment
+### 2. Set up the Environment
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 ### 3. Configure Database
-	•	Create a MySQL database named BarkDB
-	•	Update the connect_db() function in app.py with your DB credentials
-	•	use schema.sql, data/ for creating tables and inserting data
+
+- Update the connect_db() function in app.py with your DB credentials
+- Run schema.sql to create tables, triggers, views, and functions. Sample data is stored in data/ to populate tables
  
 ### 4. Run the App
 ```bash
 python app.py
 ```
+ App will be available at http://127.0.0.1:5000/
+
 ---
 ## Usage
 
-Explain how to use your project, with code examples if possible.
+Signup Flow:
+	•	Users can sign up as Pet Owners or Service Providers
+	•	Owners provide pet details
+	•	Providers select location from dropdown and add experience
 
+Booking:
+	•	Owners can search by zipcode, service, and date
+	•	Providers with no conflicting bookings are shown
+	•	Once booked, confirmation shows BookingID and estimated cost
+
+Analytics:
+	•	View top providers by experience
+	•	Track rolling bookings by service
+	•	Revenue reports by city, pet type, and service
 
 ---
 ## Project Structure
-├── static/style.css      # Static assets  
-├── templates/            # HTML templates (Jinja2)
-│   ├── main_menu.html
-│   ├── signup.html
-│   ├── view_results.html
-│   ├── ...            
-├── requirements.txt      # Python dependencies
-|__ app.py                # Main Flask application 
-├── README.md             #You are here!
 
+![Project structure](/project_structure.png)
 
 ## Features
 
-SQL Features
-	•	Booking Conflict Check
-	•	Dynamic Filtering (Zipcode, Service, Dates)
-	•	SQL Analytics with RANK(), ROLLUP, and Moving Averages
+	•	Booking Conflict Checks using subqueries
+	•	Dynamic filtering by zipcode, service, and dates
+	•	SQL Analytics using:
+	•	RANK(), DENSE_RANK(), ROW_NUMBER()
+	•	ROLLUP for aggregations
+	•	Moving averages using WINDOW functions
+
 ---
-
-
 Created by [Ammu Anil](mailto:aanil1@hawk.illinoistech.edu) - feel free to contact me!
+

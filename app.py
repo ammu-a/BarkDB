@@ -103,7 +103,7 @@ def view_item(item):
 
     cur.close()
     conn.close()
-    return render_template('view_results.html', title=title, data=data, columns=columns)
+    return render_template('view_tables.html', title=title, data=data, columns=columns)
 
 @app.route('/update', methods=['GET', 'POST'])
 def update_provider():
@@ -169,7 +169,7 @@ def delete_user():
         flash("User deleted successfully!", "success")
     except Exception as e:
         flash(f"User deletion failed: {str(e)}", "danger")
-    return redirect('/delete')
+    return redirect('/delete_user_form')
 
 @app.route('/delete_booking', methods=['POST'])
 def delete_booking():
@@ -184,7 +184,7 @@ def delete_booking():
         flash("Booking deleted successfully!", "success")
     except Exception as e:
         flash(f"Booking deletion failed: {str(e)}", "danger")
-    return redirect('/delete')
+    return redirect('/delete_booking_form')
 
 @app.route('/add_review', methods=['GET'])
 def add_review():
@@ -449,11 +449,10 @@ def experience_rank():
 @app.route("/analytics/rate_rank")
 def rate_rank():
     query = """
-        SELECT ProviderID, ProviderName, YearsExperience,
-            ROW_NUMBER() OVER (ORDER BY YearsExperience DESC) AS row_num,
-                RANK() OVER (ORDER BY YearsExperience DESC) AS `ranked`,
-                    DENSE_RANK() OVER (ORDER BY YearsExperience DESC) AS dense_ranked
-        FROM ServiceProvider;
+        SELECT r.RateID, s.ServiceName, r.rate,
+        Rank() OVER (PARTITION BY r.ServiceID ORDER BY r.rate DESC) AS rate_rank
+        FROM Rate r
+        JOIN Services s ON r.ServiceID = s.ServiceID;
     """
     return do_analytical_queries(query, query_name="rate_rank")
 
@@ -503,6 +502,18 @@ def provider_totals():
         JOIN ServiceProvider sp ON b.ProviderID = sp.ProviderID
     """
     return do_analytical_queries(query, query_name="provider_totals")
+
+@app.route("/analytics/monthly_revenue")
+def monthly_revenue():
+    query = """
+        SELECT 
+    DATE_FORMAT(b.StartDate, '%Y-%m') AS Month,
+    SUM(GetTotalBookingPrice(b.BookingID)) AS TotalRevenue
+FROM Booking b
+GROUP BY Month
+ORDER BY Month;
+    """ 
+    return do_analytical_queries(query, query_name="monthly_revenue")   
 
 @app.route("/analytics/revenue_rollup")
 def revenue_rollup():
